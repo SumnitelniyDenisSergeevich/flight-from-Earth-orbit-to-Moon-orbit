@@ -132,14 +132,16 @@ vector<Right> Fk(const Vector& radius, const Vector& speed, const double step, c
 
 Vector CalcTimeDerivativeVelocity(const Vector& spacecraft_r, const Vector& moon_radius_vector, const Vector& sun_radius_vector, const double time) {
 	Vector result(3);
-	//Vector grav_accel_moon = CalcGravitationalAcceleration(mum, spacecraft_r, moon_radius_vector);
-	//Vector grav_accel_sun = CalcGravitationalAcceleration(mus, spacecraft_r, sun_radius_vector);
-	//Vector r_grinvich = J200toGCS(spacecraft_r, time);
-	//Vector harmonic_accel_earth = CalcHarmonicAcceleratin(mu, Rz, r_grinvich, 33, Cnn, Snn);
+	Vector grav_accel_moon = CalcGravitationalAcceleration(mum, spacecraft_r, moon_radius_vector);
+	Vector grav_accel_sun = CalcGravitationalAcceleration(mus, spacecraft_r, sun_radius_vector); 
+
+	Vector r_grinvich = J200toGCS(spacecraft_r, time);
+	Vector harmonic_accel_earth_grinvich = CalcHarmonicAcceleratin(mu, Rz, r_grinvich, 33, Cnn, Snn);
+	Vector harmonic_accel_earth = GCStoJ2000(harmonic_accel_earth_grinvich, time);
 	//Vector harmonic_accel_moon = CalcHarmonicAcceleratin(mum, R_Moon, r_grinvich, 76, Cnn_moon, Snn_moon);
 
 	double spacecraft_r_module3 = spacecraft_r.Module() * spacecraft_r.Module() * spacecraft_r.Module();
-	result = spacecraft_r * (-mu) / (spacecraft_r_module3);// +grav_accel_moon + grav_accel_sun + harmonic_accel_earth;
+	result = spacecraft_r * (-mu) / (spacecraft_r_module3) +grav_accel_moon + grav_accel_sun +harmonic_accel_earth;
 	return result;
 }
 
@@ -147,7 +149,7 @@ Vector CalcGravitationalAcceleration(const double planet_gravitational_parameter
 	Vector temp = planet_radius_vector - spacecraft_radius_vector;
 	double temp_module3 = temp.Module() * temp.Module() * temp.Module();
 	double planet_module3 = planet_radius_vector.Module() * planet_radius_vector.Module() * planet_radius_vector.Module();
-	return planet_gravitational_parameter * (temp / (temp_module3)-planet_radius_vector / (planet_module3));
+	return (planet_gravitational_parameter * ((temp / temp_module3)  - (planet_radius_vector / planet_module3)));
 }
 
 std::pair<Matrix,Matrix> CreateUV(const Vector& spacecraft_r, size_t size) {
@@ -161,8 +163,8 @@ std::pair<Matrix,Matrix> CreateUV(const Vector& spacecraft_r, size_t size) {
 	}
 	U[1][0] = spacecraft_r.at(2) / spacecraft_mod_2 * U.at(0).at(0);
 	V[1][0] = spacecraft_r.at(2) / spacecraft_mod_2 * V.at(0).at(0);
-	for (int row = 1; row + 1 < size; ++row) {//k - row
-		for (int col = 0; col <= row; ++col) {// j - col
+	for (int row = 1; row + 1 < size; ++row) {
+		for (int col = 0; col <= row; ++col) {
 			U[row + 1][col] = (2 * row + 1) * spacecraft_r.at(2) * U.at(row).at(col) / (row - col + 1.)  / spacecraft_mod_2
 				- (row + col) * U.at(row - 1).at(col) / (row - col + 1.) / spacecraft_mod_2;
 
@@ -179,7 +181,7 @@ void FillUdVd(vector<Matrix>& U_d, vector<Matrix>& V_d, const Matrix& U, const M
 		V_d[0][row][0] = -0.5 * V.at(row + 1).at(1) + 0.5 * V.at(row + 1).at(1);
 
 		U_d[1][row][0] = -0.5 * V.at(row + 1).at(1) - 0.5 * V.at(row + 1).at(1);
-		V_d[1][row][0] = 0.5 * U.at(row + 1).at(1) + 0.5 * U.at(row + 1).at(1);
+		V_d[1][row][0] = 0.5 * U.at(row + 1).at(1) - 0.5 * U.at(row + 1).at(1);
 
 		U_d[2][row][0] = -(row + 1) * U.at(row + 1).at(0);
 		V_d[2][row][0] = -(row + 1) * V.at(row + 1).at(0);
@@ -208,12 +210,12 @@ Vector Abs(const Vector& v) {
 
 double MaxElement(const Vector& v1, const Vector& v2) {
 	double max = v1.at(0);
-	for (const int val : v1) {
+	for (const double val : v1) {
 		if (val > max) {
 			max = val;
 		}
 	}
-	for (const int val : v2) {
+	for (const double val : v2) {
 		if (val > max) {
 			max = val;
 		}

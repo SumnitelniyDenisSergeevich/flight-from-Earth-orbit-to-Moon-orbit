@@ -17,6 +17,10 @@ public:
 	Matrix operator*(const Matrix& right_matrix) const;
 	Vector operator*(const Vector& v) const;
 
+	Matrix Transponir() const;
+
+	void Print() const;
+
 	void Print(std::ofstream& out) const;
 private:
 	std::vector<std::vector<double>> matr_;

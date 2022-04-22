@@ -75,11 +75,7 @@ Vector Vector::operator*(const double val) const {
 }
 
 Vector operator*(const double val, const Vector& vec) {
-	Vector result(vec.vec_.size());
-	for (size_t i = 0; i < vec.vec_.size(); ++i) {
-		result[i] = vec.vec_.at(i) / val;
-	}
-	return result;
+	return vec * val;
 }
 
 double Vector::Module() const {

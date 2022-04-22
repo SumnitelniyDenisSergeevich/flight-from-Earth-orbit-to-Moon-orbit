@@ -1,6 +1,5 @@
 #include "matrix.h"
-
-#include <fstream> //delete
+#include <iostream> //delete
 
 using namespace std;
 
@@ -36,7 +35,6 @@ const std::vector<double>& Matrix::at(size_t i) const {
 	return matr_.at(i);
 }
 
-
 Matrix Matrix::operator*(const Matrix& right_matrix) const {
 	if (cols_ != right_matrix.rows_) {
 		throw invalid_argument("left_cols != right_rows");
@@ -52,7 +50,6 @@ Matrix Matrix::operator*(const Matrix& right_matrix) const {
 	return result;
 }
 
-
 Vector Matrix::operator*(const Vector& v) const {
 	if (cols_ != v.Size()) {
 		throw invalid_argument("left_cols != right_rows");
@@ -65,6 +62,26 @@ Vector Matrix::operator*(const Vector& v) const {
 	}
 	return result;
 }
+
+Matrix Matrix::Transponir() const {
+	Matrix result = *this;
+	for (size_t row = 1; row < rows_; ++row) {
+		for (size_t col = 0; col < row; ++col) {
+			std::swap(result[row][col], result[col][row]);
+		}
+	}
+	return result;
+}
+
+void Matrix::Print() const {
+	for (const vector<double>& vec : matr_) {
+		for (double val : vec) {
+			cout << val << "  ";
+		}
+		cout << endl;
+	}
+}
+
 
 void Matrix::Print(std::ofstream& out) const {
 	for (const vector<double>& vec : matr_) {

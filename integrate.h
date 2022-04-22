@@ -2,11 +2,7 @@
 
 #include "vector.h"
 #include "matrix.h"
-
 #include "ephemeris.h"
-
-#include <iostream> // delete
-#include <fstream>
 
 struct Right {
 	Vector r = { 0.,0.,0. };
@@ -37,20 +33,19 @@ Vector CalcHarmonicAcceleratin(const double grav_param, const double equat_r, co
 	std::vector<Matrix> U_d = { Matrix(d_size), Matrix(d_size), Matrix(d_size) };
 	std::vector<Matrix> V_d = { Matrix(d_size), Matrix(d_size), Matrix(d_size) };
 	{
-		std::ofstream out("output.txt"); // delete
 		auto [U, V] = CreateUV(spacecraft_r, size);
 		FillUdVd(U_d, V_d, U, V, d_size);
 	}
-	double sum1;
-	double sum2;
 	for (size_t k = 0; k < 3; ++k) {
-		sum2 = 0.;
+		double sum2 = 0.;
+		double equat_r_pow = equat_r;
 		for (int row = 1; row < d_size; ++row) {
-			sum1 = 0.;
+			double sum1 = 0.;
 			for (int col = 0; col <= row; ++col) {// или <
 				sum1 += Cnn.at(row).at(col) * U_d.at(k).at(row).at(col) + Snn.at(row).at(col) * V_d.at(k).at(row).at(col);
 			}
-			sum2 += equat_r * sum1;
+			sum2 += sum1 * equat_r_pow;
+			equat_r_pow *= equat_r;
 		}
 		harmonic_accel[k] = grav_param * sum2;
 	}

@@ -49,13 +49,27 @@ Vector J200toGCS(const Vector& r, const double t) {
 	xp = 0;
 	yp = 0;
 	Matrix M = std::move(Create_Matrix_M(xp, yp));
-
 	auto [S, S1] = std::move(Create_Matrix_S(t, psi, cos(eps)));
-
 	Matrix MSNP = M * S * N * P;
-	Matrix MS1NP = M * S1 * N * P;
-
 	Vector r_result = MSNP * r;
+	return r_result;
+}
+
+Vector GCStoJ2000(const Vector& a, const double t) {
+	double T = (UTCtoTDB(t) - 2451545.0) / 36525.0;
+	double T2 = T * T;
+	double T3 = T2 * T;
+	double eps0 = 0.4090928042 - 0.2269655E-3 * T - 2.86E-9 * T2 + 8.80E-9 * T3;
+	auto [psi, eps] = std::move(CalcPsiEps(eps0, T, T2, T3));
+	Matrix P = std::move(Create_Matrix_P(T, T2, T3));
+	Matrix N = std::move(Create_Matrix_N(psi, eps0, eps));
+	double xp, yp; // обновл€ютс€ ежедневно
+	xp = 0;
+	yp = 0;
+	Matrix M = std::move(Create_Matrix_M(xp, yp));
+	auto [S, S1] = std::move(Create_Matrix_S(t, psi, cos(eps)));
+	Matrix MSNP = M * S * N * P;
+	Vector r_result = MSNP.Transponir() * a;
 	return r_result;
 }
 

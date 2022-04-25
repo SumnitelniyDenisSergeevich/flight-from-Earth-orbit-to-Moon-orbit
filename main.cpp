@@ -1,5 +1,6 @@
 ﻿#include "vector.h"//delete
 #include "integrate.h"
+#include <iostream>
 
 
 
@@ -17,11 +18,16 @@ int main()
     //J200toGCS({ 1000, 9000, 3000 }, { 3,1,7 }, 2451544.5);
     //J200toGCS({ 8000, 0, 0 }, { 0,4,6 }, 2451544.5); 
 
-    Vector radius = { -6960.29650278241, 35.40570314626 , 15.38416914911 };
+   /* Vector radius = { -6960.29650278241, 35.40570314626 , 15.38416914911 };
     Vector speed = { .02180701116 ,  1.00761760916  , 7.50001035085 };
     double time = 2459935.3750000;
-    RungeCutte8(radius, speed, time + 2400/86400./*10 min*/, 1, de405);
+    RungeCutte8(radius, speed, time + 14, 1, de405);*/
 
+
+    Vector radius = { 2,2,5 };
+    Vector planet = { 6,4,6 };
+    double planet_radius = 1.5;
+    CalcVisiblePlanetAngle(radius, planet, planet_radius);
     
     
     /*Vector r_grinvich = J200toGCS(radius, time);

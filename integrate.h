@@ -16,6 +16,7 @@ Vector CalcSumY(const std::vector<Right>& fk);
 Vector CalcSumYk(const std::vector<Right>& fk);
 Vector CalcSumVy(const std::vector<Right>& fk);
 Vector CalcSumVyk(const std::vector<Right>& fk);
+void CalcVisiblePlanetAngle(const Vector& spececraft_r, const Vector& planet_r, const double planet_radius);
 Vector CalcTimeDerivativeVelocity(const Vector& spacecraft_radius_vector, const Vector& moon_radius_vector, const Vector& sun_radius_vector, const double time);
 Vector CalcGravitationalAcceleration(const double planet_gravitational_parameter, const Vector& planet_radius_vector, const Vector& spacecraft_radius_vector);
 std::pair<Matrix,Matrix> CreateUV(const Vector& spacecraft_r, size_t size);
@@ -24,6 +25,9 @@ std::vector<Right> Fk(const Vector& radius, const Vector& speed, const double st
 
 Vector Abs(const Vector& v);
 double MaxElement(const Vector& v1, const Vector& v2);
+
+void PrintAngles(const double visible_angle, const double latitude, const double longitude);
+void PrintAngles(std::ofstream& out, const double visible_angle, const double latitude, const double longitude);
 
 template <std::size_t SizeT>
 Vector CalcHarmonicAcceleratin(const double grav_param, const double equat_r, const Vector& spacecraft_r, size_t d_size,

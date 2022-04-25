@@ -7,6 +7,7 @@
 #include <iostream> // delete
 #include <vector>
 #include <iomanip>
+#include <algorithm>
 using namespace std;
 
 
@@ -100,7 +101,21 @@ Vector CalcSumVyk(const vector<Right>& fk) {
 	return v_plus_dv;
 }
 
+void CalcVisiblePlanetAngle(const Vector& spececraft_r, const Vector& planet_r, const double planet_radius) {
+	Vector dist = planet_r - spececraft_r;
+	double visible_planet_angle = 2. * (atan(planet_radius / dist.Module())) /*/ pi * 180.*/;
+	double latitude = atan(dist.at(2) / sqrt(dist.at(0) * dist.at(0) + dist.at(1) * dist.at(1)));
+	double longitude = atan2(dist.at(1), dist.at(0));
+	PrintAngles(visible_planet_angle, latitude, longitude);
+}
 
+void PrintAngles(const double visible_angle, const double latitude, const double longitude) {
+	cout << visible_angle << "  " << latitude << "  " << longitude << endl;
+}
+
+void PrintAngles(std::ofstream& out, const double visible_angle, const double latitude, const double longitude) {
+	out << visible_angle << "  " << latitude << "  " << longitude << endl;
+}
 
 vector<Right> Fk(const Vector& radius, const Vector& speed, const double step, const double time, const dph::EphemerisRelease& de405) {
 	vector<Right> fk;
@@ -209,16 +224,5 @@ Vector Abs(const Vector& v) {
 }
 
 double MaxElement(const Vector& v1, const Vector& v2) {
-	double max = v1.at(0);
-	for (const double val : v1) {
-		if (val > max) {
-			max = val;
-		}
-	}
-	for (const double val : v2) {
-		if (val > max) {
-			max = val;
-		}
-	}
-	return max;
+	return std::max(*std::max_element(v1.begin(), v1.end()), *std::max_element(v2.begin(), v2.end()));
 }

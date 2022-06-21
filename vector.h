@@ -6,8 +6,11 @@
 class Vector {
 public:
 	Vector(std::initializer_list<double> inputs);
-	Vector(size_t size, double val = 0.);
+	Vector(size_t size, double val);
+	Vector(size_t size);
 	Vector();
+	Vector(Vector&& vec) noexcept;
+	Vector(const Vector& vec);
 
 	const double at(size_t i) const;
 	double& operator[](size_t i);
@@ -17,10 +20,13 @@ public:
 	Vector operator/(const double val) const;
 	Vector operator*(const double val) const;
 	friend Vector operator*(const double val, const Vector& vec);
+	void operator=(Vector&& tmp) noexcept;
+	void operator=(const Vector& tmp);
 
 	double Module() const;
 	friend double ScalarMultiply(const Vector& left_vec, const Vector& right_vec);				//ñêàëÿðíîå ïðîèçâåäåíèå
 	friend double ÑosineAngleBetweenVectors(const Vector& left_vec, const Vector& right_vec);
+	void PushBack(const double val);
 
 	size_t Size() const;
 	void Print() const;
@@ -36,3 +42,6 @@ private:
 	mutable std::optional<double> mod_ = std::nullopt;
 };
 
+double ScalarMultiply(const Vector& left_vec, const Vector& right_vec);
+
+double ÑosineAngleBetweenVectors(const Vector& left_vec, const Vector& right_vec);

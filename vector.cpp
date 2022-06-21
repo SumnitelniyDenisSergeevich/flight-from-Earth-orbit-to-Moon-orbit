@@ -7,21 +7,25 @@ Vector::Vector(std::initializer_list<double> inputs) : vec_(inputs) {
 }
 Vector::Vector(size_t size, double val):vec_(size,val) {
 }
+Vector::Vector(size_t size) : vec_(size) {
+}
 Vector::Vector() {
+}
+Vector::Vector(Vector&& vec) noexcept {
+	mod_.reset();
+	vec_ = std::move(vec.vec_);
+}
+Vector::Vector(const Vector& vec) {
+	mod_.reset();
+	vec_ = vec.vec_;
 }
 
 const double Vector::at(size_t i) const {
-	if (i >= vec_.size()) {
-		throw invalid_argument("out of range");
-	}
 	return vec_.at(i);
 }
 
 double& Vector::operator[](size_t i) {
 	mod_.reset();
-	if (i >= vec_.size()) {
-		throw invalid_argument("out of range");
-	}
 	return vec_[i];
 }
 
@@ -90,6 +94,15 @@ double Vector::Module() const {
 	return *mod_;
 }
 
+void Vector::operator=(Vector&& vec) noexcept {
+	mod_.reset();
+	vec_ = std::move(vec.vec_);
+}
+void Vector::operator=(const Vector& vec) {
+	mod_.reset();
+	vec_ = vec.vec_;
+}
+
 double ScalarMultiply(const Vector& left_vec, const Vector& right_vec)
 {
 	if (left_vec.vec_.size() != right_vec.vec_.size()) {
@@ -104,6 +117,10 @@ double ScalarMultiply(const Vector& left_vec, const Vector& right_vec)
 
 double ÑosineAngleBetweenVectors(const Vector& left_vec, const Vector& right_vec){
 	return ScalarMultiply(left_vec, right_vec) / left_vec.Module() / right_vec.Module();
+}
+
+void Vector::PushBack(const double val) {
+	vec_.push_back(val);
 }
 
 size_t Vector::Size() const {

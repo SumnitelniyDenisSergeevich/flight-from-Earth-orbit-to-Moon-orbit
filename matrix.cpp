@@ -3,6 +3,23 @@
 
 using namespace std;
 
+Matrix::Matrix() : rows_(0), cols_(0) {
+}
+
+Matrix::Matrix(size_t size) : rows_(size), cols_(size) {
+	matr_.resize(size);
+	for (vector<double>& vec : matr_) {
+		vec.resize(size);
+	}
+}
+
+Matrix::Matrix(size_t rows, size_t cols) : rows_(rows), cols_(cols) {
+	matr_.resize(rows);
+	for (vector<double>& vec : matr_) {
+		vec.resize(cols);
+	}
+}
+
 Matrix::Matrix(size_t size, double val): rows_(size), cols_(size) {
 	matr_.resize(size);
 	for (vector<double>& vec : matr_) {
@@ -18,20 +35,25 @@ Matrix::Matrix(size_t rows, size_t cols, double val) : rows_(rows), cols_(cols) 
 }
 
 Matrix::Matrix(std::initializer_list<vector<double>>& inputs) : matr_(inputs), rows_(inputs.size()), cols_(matr_.at(0).size()) {
-	
+}
+
+Matrix::Matrix(Matrix&& matr) noexcept {
+	cols_ = matr.cols_;
+	rows_ = matr.rows_;
+	matr_ = std::move(matr.matr_);
+}
+
+Matrix::Matrix(const Matrix& matr) {
+	cols_ = matr.cols_;
+	rows_ = matr.rows_;
+	matr_ = matr.matr_;
 }
 
 std::vector<double>& Matrix::operator[](size_t i) {
-	if (i > rows_) {
-		throw invalid_argument("out of range");
-	}
 	return matr_[i];
 }
 
 const std::vector<double>& Matrix::at(size_t i) const {
-	if (i > rows_) {
-		throw invalid_argument("out of range");
-	}
 	return matr_.at(i);
 }
 
@@ -63,14 +85,25 @@ Vector Matrix::operator*(const Vector& v) const {
 	return result;
 }
 
-Matrix Matrix::Transponir() const {
-	Matrix result = *this;
+void Matrix::operator=(Matrix&& tmp) noexcept {
+	cols_ = tmp.cols_;
+	rows_ = tmp.rows_;
+	matr_ = std::move(tmp.matr_);
+}
+
+void Matrix::operator=(const Matrix& tmp) {
+	cols_ = tmp.cols_;
+	rows_ = tmp.rows_;
+	matr_ = tmp.matr_;
+}
+
+const Matrix& Matrix::Transponir() {
 	for (size_t row = 1; row < rows_; ++row) {
 		for (size_t col = 0; col < row; ++col) {
-			std::swap(result[row][col], result[col][row]);
+			std::swap(matr_[row][col], matr_[col][row]);
 		}
 	}
-	return result;
+	return *this;
 }
 
 void Matrix::Print() const {

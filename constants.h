@@ -1,6 +1,9 @@
 #pragma once
 //---------------------------------------------------------------------------
 #include <array>
+#include <map>
+#include <string>
+#include "vector.h"
 extern const double pi;     // Pi
 extern const double pi_2;   // 2 Pi
 extern const double AE;     // Астроном. единица (км)
@@ -88,3 +91,4 @@ extern const double atm_e[2][14][7];
 extern const double atm_l[2][6][7];
 extern const double atm_Ad[9];
 //  <- коэффициенты для определения плотности атмосферы
+extern const std::map<std::string, Vector> CONST_NIP_COOR;

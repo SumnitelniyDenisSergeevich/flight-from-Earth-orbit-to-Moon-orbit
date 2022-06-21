@@ -1,6 +1,10 @@
 #include "change_coord_system.h"
 #include "constants.h"
 #include <cmath>
+#include <iostream>
+#include <string>
+
+using namespace std::literals;
 
 double UTCtoTDB(const double utc_time) {
 	return utc_time + (32.184 + 37) / 86400.;
@@ -19,22 +23,20 @@ std::pair<Vector,Vector> J200toGCS(const Vector& r, const Vector& v, const doubl
 	double T2 = T * T;
 	double T3 = T2 * T;
 	double eps0 = 0.4090928042 - 0.2269655E-3 * T - 2.86E-9 * T2 + 8.80E-9 * T3;
-	auto [psi, eps] = std::move(CalcPsiEps(eps0, T, T2, T3));
-	Matrix P = std::move(Create_Matrix_P(T, T2, T3));
-	Matrix N = std::move(Create_Matrix_N(psi, eps0, eps));
+	auto [psi, eps] = CalcPsiEps(eps0, T, T2, T3);
+	Matrix P = Create_Matrix_P(T, T2, T3);
+	Matrix N = Create_Matrix_N(psi, eps0, eps);
 	double xp, yp; // обновляются ежедневно
 	xp = 0;
 	yp = 0;
-	Matrix M = std::move(Create_Matrix_M(xp, yp));
+	Matrix M = Create_Matrix_M(xp, yp);
 
-	auto [S, S1] = std::move(Create_Matrix_S(t, psi, cos(eps)));
+	auto [S, S1] = Create_Matrix_S_S1(t, psi, cos(eps));
 
 	Matrix MSNP = M * S * N * P;
 	Matrix MS1NP = M * S1 * N * P;
 
-	Vector r_result = MSNP * r;
-	Vector v_result = MSNP * v + MS1NP * r;
-	return { r_result, v_result };
+	return { MSNP * r, MSNP * v + MS1NP * r };
 }
 
 Vector J200toGCS(const Vector& r, const double t) {
@@ -42,17 +44,15 @@ Vector J200toGCS(const Vector& r, const double t) {
 	double T2 = T * T;
 	double T3 = T2 * T;
 	double eps0 = 0.4090928042 - 0.2269655E-3 * T - 2.86E-9 * T2 + 8.80E-9 * T3;
-	auto [psi, eps] = std::move(CalcPsiEps(eps0, T, T2, T3));
-	Matrix P = std::move(Create_Matrix_P(T, T2, T3));
-	Matrix N = std::move(Create_Matrix_N(psi, eps0, eps));
+	auto [psi, eps] = CalcPsiEps(eps0, T, T2, T3);
+	Matrix P = Create_Matrix_P(T, T2, T3);
+	Matrix N = Create_Matrix_N(psi, eps0, eps);
 	double xp, yp; // обновляются ежедневно
 	xp = 0;
 	yp = 0;
-	Matrix M = std::move(Create_Matrix_M(xp, yp));
-	auto [S, S1] = std::move(Create_Matrix_S(t, psi, cos(eps)));
-	Matrix MSNP = M * S * N * P;
-	Vector r_result = MSNP * r;
-	return r_result;
+	Matrix M = Create_Matrix_M(xp, yp);
+	Matrix S = Create_Matrix_S(t, psi, cos(eps));
+	return  M * S * N * P * r;
 }
 
 Vector GCStoJ2000(const Vector& a, const double t) {
@@ -60,17 +60,16 @@ Vector GCStoJ2000(const Vector& a, const double t) {
 	double T2 = T * T;
 	double T3 = T2 * T;
 	double eps0 = 0.4090928042 - 0.2269655E-3 * T - 2.86E-9 * T2 + 8.80E-9 * T3;
-	auto [psi, eps] = std::move(CalcPsiEps(eps0, T, T2, T3));
-	Matrix P = std::move(Create_Matrix_P(T, T2, T3));
-	Matrix N = std::move(Create_Matrix_N(psi, eps0, eps));
+	auto [psi, eps] = CalcPsiEps(eps0, T, T2, T3);
+	Matrix P = Create_Matrix_P(T, T2, T3);
+	Matrix N = Create_Matrix_N(psi, eps0, eps);
 	double xp, yp; // обновляются ежедневно
 	xp = 0;
 	yp = 0;
-	Matrix M = std::move(Create_Matrix_M(xp, yp));
-	auto [S, S1] = std::move(Create_Matrix_S(t, psi, cos(eps)));
+	Matrix M = Create_Matrix_M(xp, yp);
+	Matrix S = Create_Matrix_S(t, psi, cos(eps));
 	Matrix MSNP = M * S * N * P;
-	Vector r_result = MSNP.Transponir() * a;
-	return r_result;
+	return MSNP.Transponir() * a;
 }
 
 std::pair<double, double> CalcPsiEps(const double eps0, const double T, const double T2, const double T3) {
@@ -147,22 +146,40 @@ Matrix Create_Matrix_N( const double psi, const double eps0, const double eps) {
 Matrix Create_Matrix_M(const double xp, const double yp) {
 	Matrix M(3);
 
-	M[0][0] = cos(xp);
+	M[0][0] = 1/*cos(xp)*/;
 	M[0][1] = 0;
-	M[0][2] = sin(xp);
+	M[0][2] = 0/*sin(xp)*/;
 
-	M[1][0] = sin(xp) * sin(yp);
-	M[1][1] = cos(yp);
-	M[1][2] = -cos(xp) * sin(yp);
+	M[1][0] = 0/*sin(xp) * sin(yp)*/;
+	M[1][1] = 1/*cos(yp)*/;
+	M[1][2] = 0/*-cos(xp) * sin(yp)*/;
 
-	M[2][0] = -sin(xp) * cos(yp);
-	M[2][1] = sin(yp);
-	M[2][2] = cos(xp) * cos(yp);
+	M[2][0] = 0/*-sin(xp) * cos(yp)*/;
+	M[2][1] = 0/*sin(yp)*/;
+	M[2][2] = 1/*cos(xp) * cos(yp)*/;
 	return M;
 }
 
+Matrix Create_Matrix_S(const double t, const double psi, const double c_eps) {
+	double s = Smean(t) + psi * c_eps;
+	double c_l = cos(s);
+	double s_l = sin(s);
+	Matrix S(3);
+	S[0][0] = c_l;
+	S[0][1] = s_l;
+	S[0][2] = 0;
 
-std::pair<Matrix,Matrix> Create_Matrix_S(const double t, const double psi, const double c_eps) {
+	S[1][0] = -s_l;
+	S[1][1] = c_l;
+	S[1][2] = 0;
+
+	S[2][0] = 0;
+	S[2][1] = 0;
+	S[2][2] = 1;
+	return S;
+}
+
+std::pair<Matrix,Matrix> Create_Matrix_S_S1(const double t, const double psi, const double c_eps) {
 	double w = -7.292115e-5;
 	double s = Smean(t) + psi * c_eps;
 
@@ -195,4 +212,76 @@ std::pair<Matrix,Matrix> Create_Matrix_S(const double t, const double psi, const
 	S1[2][2] = 0;
 
 	return { S, S1 };
+}
+
+
+double ConvertDateToUliane(const size_t d, const size_t mon, const size_t y, const size_t h, const size_t m, const size_t s, const size_t ms) {
+	double a_k = (14 - mon) / 12;
+	double y_k = y + 4800 - a_k;
+	double m_k = mon + 12 * a_k - 3;
+	int JDN = d + (153 * m_k + 2) / 5 + 365 * y_k + y_k / 4 - y_k / 100 + y_k / 400 - 32045;
+	double JD = JDN +(static_cast<double>(h) - 12) / 24. + m / 1440. + s / 86400. + ms / 86400000.;
+	return JD;
+}
+
+std::string ConvertUlianeToDate(const double JD) {
+	std::string result = ""s;
+	size_t JDN = std::round(JD);
+	size_t a = JDN + 32044;
+	size_t b = (4*a+3)/146097;
+	size_t c = a - 146097 * b / 4;
+	size_t d = (4 * c + 3) / 1461;
+	size_t e = c - 1461 * d / 4;
+	size_t m = (5 * e + 2) / 153;
+
+	size_t day = e - (153 * m + 2) / 5 + 1;
+	size_t month = m + 3 - 12 * (m / 10);
+	size_t year = 100 * b + d - 4800 + m / 10;
+
+	double h_m_s_ms = JD - std::floor(JD);
+	size_t ms = h_m_s_ms * 86400000;
+	int h = 12 + ms / 3600000;
+	if (h >= 24) {
+		h -= 24;
+	}
+	size_t min =( ms / 60000) % 60;
+	size_t sec = (ms / 1000) % 60;
+	size_t msec = ms % 1000;
+	//переработать----------------------------------------------------------------------
+	if (day < 10) {
+		result += "0"s + std::to_string(day);
+	}
+	else {
+		result += std::to_string(day);
+	}
+	result += "."s;
+	if (month < 10) {
+		result += "0"s + std::to_string(month);
+	}
+	else {
+		result += std::to_string(month);
+	}
+	result += "."s + std::to_string(year) + " "s;
+	if (h < 10) {
+		result += "0"s + std::to_string(h);
+	}
+	else {
+		result += std::to_string(h);
+	}
+	result += ":"s;
+	if (min < 10) {
+		result += "0"s + std::to_string(min);
+	}
+	else {
+		result += std::to_string(min);
+	}
+	result += ":"s;
+	if (sec < 10) {
+		result += "0"s + std::to_string(sec);
+	}
+	else {
+		result += std::to_string(sec);
+	}
+	//переработать----------------------------------------------------------------------
+	return result;
 }
